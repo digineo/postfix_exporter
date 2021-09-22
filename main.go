@@ -17,7 +17,7 @@ func main() {
 		app                 = kingpin.New("postfix_exporter", "Prometheus metrics exporter for postfix")
 		listenAddress       = app.Flag("web.listen-address", "Address to listen on for web interface and telemetry.").Default(":9154").String()
 		metricsPath         = app.Flag("web.telemetry-path", "Path under which to expose metrics.").Default("/metrics").String()
-		postfixShowqPath    = app.Flag("postfix.showq_path", "Path at which Postfix places its showq socket.").Default("/var/spool/postfix/public/showq").String()
+		instances           = app.Flag("postfix.instances", "Name of postfix instances.").Default("postfix").Strings()
 		logUnsupportedLines = app.Flag("log.unsupported", "Log all unsupported lines.").Bool()
 	)
 
@@ -30,11 +30,7 @@ func main() {
 	}
 	defer logSrc.Close()
 
-	exporter, err := NewPostfixExporter(
-		*postfixShowqPath,
-		logSrc,
-		*logUnsupportedLines,
-	)
+	exporter, err := NewPostfixExporter(*instances, logSrc, *logUnsupportedLines)
 	if err != nil {
 		log.Fatalf("Failed to create PostfixExporter: %s", err)
 	}
@@ -56,7 +52,11 @@ func main() {
 	})
 	ctx, cancelFunc := context.WithCancel(ctx)
 	defer cancelFunc()
-	go exporter.StartMetricCollection(ctx)
+
+	for _, instance := range exporter.instances {
+		go exporter.StartMetricCollection(ctx, instance)
+	}
+
 	log.Print("Listening on ", *listenAddress)
 	log.Fatal(http.ListenAndServe(*listenAddress, nil))
 }

@@ -1,41 +1,37 @@
 package main
 
 import (
-	"github.com/kumina/postfix_exporter/mock"
-	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
+
+	"github.com/kumina/postfix_exporter/mock"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCollectShowqFromReader(t *testing.T) {
-	type args struct {
-		file string
-	}
 	tests := []struct {
 		name               string
-		args               args
+		file               string
 		wantErr            bool
 		expectedTotalCount float64
-	}{
-		{
-			name: "basic test",
-			args: args{
-				file: "testdata/showq.txt",
-			},
-			wantErr:            false,
-			expectedTotalCount: 118702,
-		},
-	}
-	for _, tt := range tests {
+	}{{
+		name:               "basic test",
+		file:               "testdata/showq.txt",
+		wantErr:            false,
+		expectedTotalCount: 118702,
+	}}
+
+	for i := range tests {
+		tt := tests[i]
 		t.Run(tt.name, func(t *testing.T) {
-			file, err := os.Open(tt.args.file)
+			file, err := os.Open(tt.file)
 			if err != nil {
 				t.Error(err)
 			}
 
 			sizeHistogram := mock.NewHistogramVecMock()
 			ageHistogram := mock.NewHistogramVecMock()
-			if err := CollectTextualShowqFromScanner(sizeHistogram, ageHistogram, file); (err != nil) != tt.wantErr {
+			if err := CollectTextualShowqFromScanner(sizeHistogram, ageHistogram, file, "postfix"); (err != nil) != tt.wantErr {
 				t.Errorf("CollectShowqFromReader() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			assert.Equal(t, tt.expectedTotalCount, sizeHistogram.GetSum(), "Expected a lot more data.")
