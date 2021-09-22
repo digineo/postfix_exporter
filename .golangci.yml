@@ -1,0 +1,43 @@
+# This is a "light" version for quick local linting.
+run:
+  timeout: 1m
+
+linters:
+  # please keep in sync with .vscode/settings.json
+  fast: true
+  enable-all: true
+  disable:
+    - maligned # deprecated
+    - interfacer # deprecated
+    - golint # deprecated
+    - scopelint # deprecated
+    - dogsled
+    - errcheck
+    - forbidigo # disallows fmt.Println et.al., which makes CLI apps harder to build
+    - forcetypeassert # useful, but currenty too many results...
+    - funlen
+    - gas
+    - gci # cannot handle openspot-go being the name of the module
+    - gofumpt # same as gci
+    - gochecknoglobals
+    - gochecknoinits
+    - gocyclo
+    - godox
+    - godot # temporarily disabled, wants top-level comments to end with "."
+    - goerr113 # useful, but currently too many results
+    - gomnd
+    - gomoddirectives # required for this repo
+    - ifshort # too many false-positives
+    - lll
+    - nestif # too many false-positives
+    - nolintlint # linter generally have a very small scope, so this wouldn't add any new information
+    - noctx # temporarily disabled, needs larger refactoring
+    - nlreturn # creates too much whitespace
+    - nakedret
+    - tagliatelle # wants camel-cases JSON field (unhelpful for external APIs)
+    - testpackage # useful, but not yet supported by gopls (and other tools)
+    - wsl
+
+linters-settings:
+  godot:
+    check-all: true
