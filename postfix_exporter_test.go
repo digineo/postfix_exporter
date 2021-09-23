@@ -31,6 +31,7 @@ type collectFields struct {
 	smtpdTLSConnects                *prometheus.CounterVec
 	opendkimSignatureAdded          *prometheus.CounterVec
 	unsupportedLogEntries           *prometheus.CounterVec
+	smtpStatus                      *prometheus.CounterVec
 }
 
 type collectArgs struct {
@@ -40,6 +41,7 @@ type collectArgs struct {
 	saslFailedCount        int
 	outgoingTLS            int
 	smtpdMessagesProcessed int
+	sentCount              int
 }
 
 type collectFromLogTest struct {
@@ -151,9 +153,11 @@ var collectFromLogTests = []collectFromLogTest{{
 		lines: []string{
 			"Feb 24 16:18:40 letterman postfix/smtp[59649]: 5270320179: to=<hebj@telia.com>, relay=mail.telia.com[81.236.60.210]:25, delay=2017, delays=0.1/2017/0.03/0.05, dsn=2.0.0, status=sent (250 2.0.0 6FVIjIMwUJwU66FVIjAEB0 mail accepted for delivery)",
 		},
+		sentCount: 1,
 	},
 	fields: collectFields{
 		smtpDelays: prometheus.NewHistogramVec(prometheus.HistogramOpts{}, []string{"stage"}),
+		smtpStatus: prometheus.NewCounterVec(prometheus.CounterOpts{}, []string{"instance", "status"}),
 	},
 }, {
 	name: "Different instance",
@@ -205,6 +209,7 @@ func (tt *collectFromLogTest) prepare() *PostfixExporter {
 		smtpdRejects:                    tt.fields.smtpdRejects,
 		smtpdSASLAuthenticationFailures: tt.fields.smtpdSASLAuthenticationFailures,
 		smtpdTLSConnects:                tt.fields.smtpdTLSConnects,
+		smtpStatus:                      tt.fields.smtpStatus,
 		unsupportedLogEntries:           tt.fields.unsupportedLogEntries,
 		logUnsupportedLines:             true,
 	}
@@ -235,6 +240,7 @@ func TestPostfixExporter_CollectFromLogline(t *testing.T) {
 			assertCounterEquals(t, e.smtpTLSConnects, tt.args.outgoingTLS, "Wrong number of TLS connections counted")
 			assertCounterEquals(t, e.smtpdProcesses, tt.args.smtpdMessagesProcessed, "Wrong number of smtpd messages processed")
 			assertCounterEquals(t, e.unsupportedLogEntries, tt.args.unknownCount, "Wrong number of unknown log messages")
+			assertCounterEquals(t, e.smtpStatus, tt.args.sentCount, "Wrong number of sent messages")
 		})
 	}
 }
