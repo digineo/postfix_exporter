@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      GO_VERSION: 1.16
+      GO_VERSION: 1.17
 
     steps:
     - name: Setup Go ${{ env.GO_VERSION }}
@@ -24,14 +24,16 @@ jobs:
       uses: actions/cache@v2
       with:
         path: |
-          ~/go/pkg/mod              # Module download cache
-          ~/.cache/go-build         # Build cache (Linux)
-        key: ${{ runner.os }}-${{ env.GO_VERSION }}-go-${{ hashFiles('**/go.sum') }}
+          ~/go/pkg/mod
+          ~/.cache/go-build
+        key: ${{ env.GO_VERSION }}-go-${{ hashFiles('**/go.sum') }}
         restore-keys: |
-          ${{ runner.os }}-${{ env.GO_VERSION }}-go-
+          ${{ env.GO_VERSION }}-go-
 
     - name: Check and get dependencies
       run: |
+        sudo apt-get update -qq
+        sudo apt-get install -yqq --no-install-recommends libsystemd-dev
         go mod tidy
         git diff --exit-code go.mod
         git diff --exit-code go.sum
