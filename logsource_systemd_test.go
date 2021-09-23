@@ -1,3 +1,4 @@
+//go:build !nosystemd && linux
 // +build !nosystemd,linux
 
 package main
@@ -14,6 +15,8 @@ import (
 )
 
 func TestNewSystemdLogSource(t *testing.T) {
+	t.Parallel()
+
 	j := &fakeSystemdJournal{}
 	src, err := NewSystemdLogSource(j, "apath", "aunit", "aslice")
 	if err != nil {
@@ -32,6 +35,8 @@ func TestNewSystemdLogSource(t *testing.T) {
 }
 
 func TestSystemdLogSource_Path(t *testing.T) {
+	t.Parallel()
+
 	j := &fakeSystemdJournal{}
 	src, err := NewSystemdLogSource(j, "apath", "aunit", "aslice")
 	if err != nil {
@@ -43,6 +48,8 @@ func TestSystemdLogSource_Path(t *testing.T) {
 }
 
 func TestSystemdLogSource_Read(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	j := &fakeSystemdJournal{
@@ -73,6 +80,8 @@ func TestSystemdLogSource_Read(t *testing.T) {
 }
 
 func TestSystemdLogSource_ReadEOF(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	j := &fakeSystemdJournal{
@@ -113,11 +122,13 @@ type fakeSystemdJournal struct {
 
 func (j *fakeSystemdJournal) AddMatch(match string) error {
 	j.addMatchCalls = append(j.addMatchCalls, match)
+
 	return nil
 }
 
 func (j *fakeSystemdJournal) Close() error {
 	j.closeCalls++
+
 	return nil
 }
 
@@ -127,6 +138,7 @@ func (j *fakeSystemdJournal) GetEntry() (*sdjournal.JournalEntry, error) {
 	}
 	e := j.getEntryValues[0]
 	j.getEntryValues = j.getEntryValues[1:]
+
 	return &e, nil
 }
 
@@ -136,15 +148,18 @@ func (j *fakeSystemdJournal) Next() (uint64, error) {
 	}
 	v := j.nextValues[0]
 	j.nextValues = j.nextValues[1:]
+
 	return v, nil
 }
 
 func (j *fakeSystemdJournal) SeekRealtimeUsec(usec uint64) error {
 	j.seekRealtimeUsecCalls = append(j.seekRealtimeUsecCalls, usec)
+
 	return nil
 }
 
 func (j *fakeSystemdJournal) Wait(timeout time.Duration) int {
 	j.waitCalls = append(j.waitCalls, timeout)
+
 	return 0
 }

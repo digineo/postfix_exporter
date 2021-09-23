@@ -1,3 +1,4 @@
+//go:build !nodocker
 // +build !nodocker
 
 package main
@@ -63,6 +64,7 @@ func (s *DockerLogSource) Read(ctx context.Context) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	return strings.TrimSpace(line), nil
 }
 
@@ -88,6 +90,7 @@ func (f *dockerLogSourceFactory) New(ctx context.Context) (LogSourceCloser, erro
 	if err != nil {
 		return nil, err
 	}
+
 	return NewDockerLogSource(ctx, c, f.containerID)
 }
 

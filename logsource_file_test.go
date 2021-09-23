@@ -13,11 +13,13 @@ import (
 )
 
 func TestFileLogSource_Path(t *testing.T) {
-	path, close, err := setupFakeLogFile()
+	t.Parallel()
+
+	path, closeLog, err := setupFakeLogFile()
 	if err != nil {
 		t.Fatalf("setupFakeTailer failed: %v", err)
 	}
-	defer close()
+	defer closeLog()
 
 	src, err := NewFileLogSource(path)
 	if err != nil {
@@ -29,13 +31,15 @@ func TestFileLogSource_Path(t *testing.T) {
 }
 
 func TestFileLogSource_Read(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
-	path, close, err := setupFakeLogFile()
+	path, closeLog, err := setupFakeLogFile()
 	if err != nil {
 		t.Fatalf("setupFakeTailer failed: %v", err)
 	}
-	defer close()
+	defer closeLog()
 
 	src, err := NewFileLogSource(path)
 	if err != nil {

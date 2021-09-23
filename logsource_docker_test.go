@@ -1,3 +1,4 @@
+//go:build !nodocker
 // +build !nodocker
 
 package main
@@ -14,6 +15,8 @@ import (
 )
 
 func TestNewDockerLogSource(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	c := &fakeDockerClient{}
 	src, err := NewDockerLogSource(ctx, c, "acontainer")
@@ -31,6 +34,8 @@ func TestNewDockerLogSource(t *testing.T) {
 }
 
 func TestDockerLogSource_Path(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	c := &fakeDockerClient{}
 	src, err := NewDockerLogSource(ctx, c, "acontainer")
@@ -43,6 +48,8 @@ func TestDockerLogSource_Path(t *testing.T) {
 }
 
 func TestDockerLogSource_Read(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	c := &fakeDockerClient{
@@ -70,10 +77,12 @@ type fakeDockerClient struct {
 
 func (c *fakeDockerClient) ContainerLogs(ctx context.Context, containerID string, opts types.ContainerLogsOptions) (io.ReadCloser, error) {
 	c.containerLogsCalls = append(c.containerLogsCalls, containerID)
+
 	return c.logsReader, nil
 }
 
 func (c *fakeDockerClient) Close() error {
 	c.closeCalls++
+
 	return nil
 }

@@ -37,6 +37,7 @@ func (m *HistorgramVecMock) MustCurryWith(prometheus.Labels) prometheus.Observer
 func (m *HistorgramVecMock) Collect(chan<- prometheus.Metric) {
 	panic("implement me")
 }
+
 func (m *HistorgramVecMock) GetSum() float64 {
 	return *m.mock.sum
 }

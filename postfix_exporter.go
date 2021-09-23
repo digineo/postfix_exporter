@@ -95,6 +95,7 @@ func CollectShowqFromReader(file io.Reader, instance string, ch chan<- prometheu
 	if bytes.IndexByte(buf, 0) >= 0 {
 		return CollectBinaryShowqFromReader(reader, instance, ch)
 	}
+
 	return CollectTextualShowqFromReader(reader, instance, ch)
 }
 
@@ -118,6 +119,7 @@ func CollectTextualShowqFromReader(file io.Reader, instance string, ch chan<- pr
 
 	sizeHistogram.Collect(ch)
 	ageHistogram.Collect(ch)
+
 	return err
 }
 
@@ -180,6 +182,7 @@ func CollectTextualShowqFromScanner(sizeHistogram prometheus.ObserverVec, ageHis
 		sizeHistogram.WithLabelValues(instance, queue).Observe(size)
 		ageHistogram.WithLabelValues(instance, queue).Observe(now.Sub(date).Seconds())
 	}
+
 	return scanner.Err()
 }
 
@@ -199,7 +202,7 @@ func ScanNullTerminatedEntries(data []byte, atEOF bool) (advance int, token []by
 }
 
 // CollectBinaryShowqFromReader parses Postfix's binary showq format.
-func CollectBinaryShowqFromReader(file io.Reader, instance string, ch chan<- prometheus.Metric) error {
+func CollectBinaryShowqFromReader(file io.Reader, instance string, ch chan<- prometheus.Metric) error { //nolint:funlen
 	scanner := bufio.NewScanner(file)
 	scanner.Split(ScanNullTerminatedEntries)
 
@@ -261,6 +264,7 @@ func CollectBinaryShowqFromReader(file io.Reader, instance string, ch chan<- pro
 
 	sizeHistogram.Collect(ch)
 	ageHistogram.Collect(ch)
+
 	return scanner.Err()
 }
 
@@ -271,6 +275,7 @@ func CollectShowqFromSocket(instance string, ch chan<- prometheus.Metric) error 
 		return err
 	}
 	defer fd.Close()
+
 	return CollectShowqFromReader(fd, instance, ch)
 }
 
@@ -291,12 +296,13 @@ var (
 )
 
 // CollectFromLogline collects metrict from a Postfix log line.
-func (e *PostfixExporter) CollectFromLogLine(instance, line string) {
+func (e *PostfixExporter) CollectFromLogLine(instance, line string) { //nolint:funlen,gocognit
 	// Strip off timestamp, hostname, etc.
 	logMatches := logLine.FindStringSubmatch(line)
 	if logMatches == nil {
 		// Unknown log entry format.
 		e.addToUnsupportedLine(line, instance, "")
+
 		return
 	}
 
@@ -410,8 +416,9 @@ func addToHistogramVec(h *prometheus.HistogramVec, value, fieldName string, labe
 }
 
 // NewPostfixExporter creates a new Postfix exporter instance.
-func NewPostfixExporter(instances []string, logSrc LogSource, logUnsupportedLines bool) (*PostfixExporter, error) {
+func NewPostfixExporter(instances []string, logSrc LogSource, logUnsupportedLines bool) (*PostfixExporter, error) { //nolint:funlen
 	timeBuckets := []float64{1e-3, 1e-2, 1e-1, 1.0, 10, 1 * 60, 1 * 60 * 60, 24 * 60 * 60, 2 * 24 * 60 * 60}
+
 	return &PostfixExporter{
 		logUnsupportedLines: logUnsupportedLines,
 		instances:           instances,
@@ -586,6 +593,7 @@ func (e *PostfixExporter) StartMetricCollection(ctx context.Context, instance st
 			if err != io.EOF {
 				log.Printf("Couldn't read journal: %v", err)
 			}
+
 			return
 		}
 		e.CollectFromLogLine(instance, line)

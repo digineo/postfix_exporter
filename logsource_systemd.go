@@ -1,3 +1,4 @@
+//go:build !nosystemd && linux
 // +build !nosystemd,linux
 
 package main
@@ -48,17 +49,20 @@ func NewSystemdLogSource(j SystemdJournal, path, unit, slice string) (*SystemdLo
 	}
 	if err != nil {
 		logSrc.journal.Close()
+
 		return nil, err
 	}
 
 	// Start at end of journal
 	if err := logSrc.journal.SeekRealtimeUsec(uint64(timeNow().UnixNano() / 1000)); err != nil {
 		logSrc.journal.Close()
+
 		return nil, err
 	}
 
 	if r := logSrc.journal.Wait(1 * time.Second); r < 0 {
 		logSrc.journal.Close()
+
 		return nil, err
 	}
 
@@ -122,6 +126,7 @@ func (f *systemdLogSourceFactory) New(ctx context.Context) (LogSourceCloser, err
 	if err != nil {
 		return nil, err
 	}
+
 	return NewSystemdLogSource(j, path, f.unit, f.slice)
 }
 
@@ -131,10 +136,12 @@ func (f *systemdLogSourceFactory) New(ctx context.Context) (LogSourceCloser, err
 func newSystemdJournal(path string) (*sdjournal.Journal, string, error) {
 	if path != "" {
 		j, err := sdjournal.NewJournalFromDir(path)
+
 		return j, path, err
 	}
 
 	j, err := sdjournal.NewJournal()
+
 	return j, "journald", err
 }
 

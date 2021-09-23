@@ -26,6 +26,7 @@ func NewFileLogSource(path string) (*FileLogSource, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return &FileLogSource{tailer}, nil
 }
 
@@ -37,6 +38,7 @@ func (s *FileLogSource) Close() error {
 		for range s.tailer.Lines {
 		}
 	}()
+
 	return s.tailer.Stop()
 }
 
@@ -50,6 +52,7 @@ func (s *FileLogSource) Read(ctx context.Context) (string, error) {
 		if !ok {
 			return "", io.EOF
 		}
+
 		return line.Text, nil
 	case <-ctx.Done():
 		return "", ctx.Err()
@@ -74,5 +77,6 @@ func (f *fileLogSourceFactory) New(ctx context.Context) (LogSourceCloser, error)
 		return nil, nil
 	}
 	log.Printf("Reading log events from %s", f.path)
+
 	return NewFileLogSource(f.path)
 }

@@ -2,7 +2,7 @@ package mock
 
 import (
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_model/go"
+	model "github.com/prometheus/client_model/go"
 )
 
 type HistogramMock struct {
@@ -17,7 +17,7 @@ func (HistogramMock) Desc() *prometheus.Desc {
 	panic("implement me")
 }
 
-func (HistogramMock) Write(*io_prometheus_client.Metric) error {
+func (HistogramMock) Write(*model.Metric) error {
 	panic("implement me")
 }
 
