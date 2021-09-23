@@ -1,0 +1,107 @@
+# HELP postfix_cleanup_messages_processed_total Total number of messages processed by cleanup.
+# TYPE postfix_cleanup_messages_processed_total counter
+postfix_cleanup_messages_processed_total{name="postfix"} 1
+# HELP postfix_qmgr_messages_inserted_receipients Number of receipients per message inserted into the mail queues.
+# TYPE postfix_qmgr_messages_inserted_receipients histogram
+postfix_qmgr_messages_inserted_receipients_bucket{name="postfix",le="1"} 1
+postfix_qmgr_messages_inserted_receipients_bucket{name="postfix",le="2"} 1
+postfix_qmgr_messages_inserted_receipients_bucket{name="postfix",le="4"} 1
+postfix_qmgr_messages_inserted_receipients_bucket{name="postfix",le="8"} 1
+postfix_qmgr_messages_inserted_receipients_bucket{name="postfix",le="16"} 1
+postfix_qmgr_messages_inserted_receipients_bucket{name="postfix",le="32"} 1
+postfix_qmgr_messages_inserted_receipients_bucket{name="postfix",le="64"} 1
+postfix_qmgr_messages_inserted_receipients_bucket{name="postfix",le="128"} 1
+postfix_qmgr_messages_inserted_receipients_bucket{name="postfix",le="+Inf"} 1
+postfix_qmgr_messages_inserted_receipients_sum{name="postfix"} 1
+postfix_qmgr_messages_inserted_receipients_count{name="postfix"} 1
+# HELP postfix_qmgr_messages_inserted_size_bytes Size of messages inserted into the mail queues in bytes.
+# TYPE postfix_qmgr_messages_inserted_size_bytes histogram
+postfix_qmgr_messages_inserted_size_bytes_bucket{name="postfix",le="1000"} 1
+postfix_qmgr_messages_inserted_size_bytes_bucket{name="postfix",le="10000"} 1
+postfix_qmgr_messages_inserted_size_bytes_bucket{name="postfix",le="100000"} 1
+postfix_qmgr_messages_inserted_size_bytes_bucket{name="postfix",le="1e+06"} 1
+postfix_qmgr_messages_inserted_size_bytes_bucket{name="postfix",le="1e+07"} 1
+postfix_qmgr_messages_inserted_size_bytes_bucket{name="postfix",le="1e+08"} 1
+postfix_qmgr_messages_inserted_size_bytes_bucket{name="postfix",le="1e+09"} 1
+postfix_qmgr_messages_inserted_size_bytes_bucket{name="postfix",le="+Inf"} 1
+postfix_qmgr_messages_inserted_size_bytes_sum{name="postfix"} 939
+postfix_qmgr_messages_inserted_size_bytes_count{name="postfix"} 1
+# HELP postfix_qmgr_messages_removed_total Total number of messages removed from mail queues.
+# TYPE postfix_qmgr_messages_removed_total counter
+postfix_qmgr_messages_removed_total{name="postfix"} 34
+# HELP postfix_smtp_delivery_delay_seconds SMTP message processing time in seconds.
+# TYPE postfix_smtp_delivery_delay_seconds histogram
+postfix_smtp_delivery_delay_seconds_bucket{name="postfix",stage="before_queue_manager",le="0.001"} 0
+postfix_smtp_delivery_delay_seconds_bucket{name="postfix",stage="before_queue_manager",le="0.01"} 0
+postfix_smtp_delivery_delay_seconds_bucket{name="postfix",stage="before_queue_manager",le="0.1"} 1
+postfix_smtp_delivery_delay_seconds_bucket{name="postfix",stage="before_queue_manager",le="1"} 2
+postfix_smtp_delivery_delay_seconds_bucket{name="postfix",stage="before_queue_manager",le="10"} 2
+postfix_smtp_delivery_delay_seconds_bucket{name="postfix",stage="before_queue_manager",le="60"} 2
+postfix_smtp_delivery_delay_seconds_bucket{name="postfix",stage="before_queue_manager",le="3600"} 2
+postfix_smtp_delivery_delay_seconds_bucket{name="postfix",stage="before_queue_manager",le="86400"} 2
+postfix_smtp_delivery_delay_seconds_bucket{name="postfix",stage="before_queue_manager",le="172800"} 2
+postfix_smtp_delivery_delay_seconds_bucket{name="postfix",stage="before_queue_manager",le="+Inf"} 2
+postfix_smtp_delivery_delay_seconds_sum{name="postfix",stage="before_queue_manager"} 0.88
+postfix_smtp_delivery_delay_seconds_count{name="postfix",stage="before_queue_manager"} 2
+postfix_smtp_delivery_delay_seconds_bucket{name="postfix",stage="connection_setup",le="0.001"} 0
+postfix_smtp_delivery_delay_seconds_bucket{name="postfix",stage="connection_setup",le="0.01"} 0
+postfix_smtp_delivery_delay_seconds_bucket{name="postfix",stage="connection_setup",le="0.1"} 1
+postfix_smtp_delivery_delay_seconds_bucket{name="postfix",stage="connection_setup",le="1"} 2
+postfix_smtp_delivery_delay_seconds_bucket{name="postfix",stage="connection_setup",le="10"} 2
+postfix_smtp_delivery_delay_seconds_bucket{name="postfix",stage="connection_setup",le="60"} 2
+postfix_smtp_delivery_delay_seconds_bucket{name="postfix",stage="connection_setup",le="3600"} 2
+postfix_smtp_delivery_delay_seconds_bucket{name="postfix",stage="connection_setup",le="86400"} 2
+postfix_smtp_delivery_delay_seconds_bucket{name="postfix",stage="connection_setup",le="172800"} 2
+postfix_smtp_delivery_delay_seconds_bucket{name="postfix",stage="connection_setup",le="+Inf"} 2
+postfix_smtp_delivery_delay_seconds_sum{name="postfix",stage="connection_setup"} 0.32999999999999996
+postfix_smtp_delivery_delay_seconds_count{name="postfix",stage="connection_setup"} 2
+postfix_smtp_delivery_delay_seconds_bucket{name="postfix",stage="queue_manager",le="0.001"} 1
+postfix_smtp_delivery_delay_seconds_bucket{name="postfix",stage="queue_manager",le="0.01"} 1
+postfix_smtp_delivery_delay_seconds_bucket{name="postfix",stage="queue_manager",le="0.1"} 1
+postfix_smtp_delivery_delay_seconds_bucket{name="postfix",stage="queue_manager",le="1"} 1
+postfix_smtp_delivery_delay_seconds_bucket{name="postfix",stage="queue_manager",le="10"} 1
+postfix_smtp_delivery_delay_seconds_bucket{name="postfix",stage="queue_manager",le="60"} 1
+postfix_smtp_delivery_delay_seconds_bucket{name="postfix",stage="queue_manager",le="3600"} 2
+postfix_smtp_delivery_delay_seconds_bucket{name="postfix",stage="queue_manager",le="86400"} 2
+postfix_smtp_delivery_delay_seconds_bucket{name="postfix",stage="queue_manager",le="172800"} 2
+postfix_smtp_delivery_delay_seconds_bucket{name="postfix",stage="queue_manager",le="+Inf"} 2
+postfix_smtp_delivery_delay_seconds_sum{name="postfix",stage="queue_manager"} 2017
+postfix_smtp_delivery_delay_seconds_count{name="postfix",stage="queue_manager"} 2
+postfix_smtp_delivery_delay_seconds_bucket{name="postfix",stage="transmission",le="0.001"} 0
+postfix_smtp_delivery_delay_seconds_bucket{name="postfix",stage="transmission",le="0.01"} 0
+postfix_smtp_delivery_delay_seconds_bucket{name="postfix",stage="transmission",le="0.1"} 1
+postfix_smtp_delivery_delay_seconds_bucket{name="postfix",stage="transmission",le="1"} 2
+postfix_smtp_delivery_delay_seconds_bucket{name="postfix",stage="transmission",le="10"} 2
+postfix_smtp_delivery_delay_seconds_bucket{name="postfix",stage="transmission",le="60"} 2
+postfix_smtp_delivery_delay_seconds_bucket{name="postfix",stage="transmission",le="3600"} 2
+postfix_smtp_delivery_delay_seconds_bucket{name="postfix",stage="transmission",le="86400"} 2
+postfix_smtp_delivery_delay_seconds_bucket{name="postfix",stage="transmission",le="172800"} 2
+postfix_smtp_delivery_delay_seconds_bucket{name="postfix",stage="transmission",le="+Inf"} 2
+postfix_smtp_delivery_delay_seconds_sum{name="postfix",stage="transmission"} 0.5700000000000001
+postfix_smtp_delivery_delay_seconds_count{name="postfix",stage="transmission"} 2
+# HELP postfix_smtp_status_total Total number of messages by status.
+# TYPE postfix_smtp_status_total counter
+postfix_smtp_status_total{name="postfix",status="sent"} 0
+# HELP postfix_smtp_tls_connections_total Total number of outgoing TLS connections.
+# TYPE postfix_smtp_tls_connections_total counter
+postfix_smtp_tls_connections_total{algorithm_bits="256",cipher="ECDHE-RSA-AES256-GCM-SHA384",name="postfix",protocol="TLSv1.2",secret_bits="256",trust="Verified"} 1
+postfix_smtp_tls_connections_total{algorithm_bits="256",cipher="TLS_AES_256_GCM_SHA384",name="postfix",protocol="TLSv1.3",secret_bits="256",trust="Verified"} 2
+# HELP postfix_smtpd_connects_total Total number of incoming connections.
+# TYPE postfix_smtpd_connects_total counter
+postfix_smtpd_connects_total{name="postfix"} 1
+# HELP postfix_smtpd_disconnects_total Total number of incoming disconnections.
+# TYPE postfix_smtpd_disconnects_total counter
+postfix_smtpd_disconnects_total{name="postfix"} 1
+# HELP postfix_smtpd_messages_processed_total Total number of messages processed.
+# TYPE postfix_smtpd_messages_processed_total counter
+postfix_smtpd_messages_processed_total{name="postfix"} 1
+# HELP postfix_smtpd_messages_rejected_total Total number of NOQUEUE rejects.
+# TYPE postfix_smtpd_messages_rejected_total counter
+postfix_smtpd_messages_rejected_total{code="450",name="postfix"} 1
+# HELP postfix_smtpd_sasl_authentication_failures_total Total number of SASL authentication failures.
+# TYPE postfix_smtpd_sasl_authentication_failures_total counter
+postfix_smtpd_sasl_authentication_failures_total{name="postfix"} 1
+# HELP postfix_unsupported_log_entries_total Log entries that could not be processed.
+# TYPE postfix_unsupported_log_entries_total counter
+postfix_unsupported_log_entries_total{name="postfix",service=""} 3
+postfix_unsupported_log_entries_total{name="postfix",service="smtpd"} 2

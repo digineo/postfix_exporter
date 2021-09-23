@@ -1,0 +1,53 @@
+Apr 26 10:55:19 tcc1 postfix/smtpd[21126]: warning: laptop.local[192.168.1.2]: SASL PLAIN authentication failed: generic failure
+Apr 26 10:55:19 tcc1 postfix/smtpd[21126]: warning: SASL authentication failure: cannot connect to saslauthd server: Permission denied
+Apr 26 10:55:19 tcc1 postfix/smtpd[21126]: warning: SASL authentication failure: Password verification failed
+Feb 11 16:49:24 letterman postfix/qmgr[8204]: 721BE256EA: removed
+Feb 11 16:49:24 letterman postfix/qmgr[8204]: AAB4D259B1: removed
+Feb 11 16:49:24 letterman postfix/qmgr[8204]: AAB4D259B2: removed
+Feb 11 16:49:24 letterman postfix/qmgr[8204]: B83C4257DC: removed
+Feb 11 16:49:24 letterman postfix/qmgr[8204]: C2032259E6: removed
+Feb 11 16:49:25 letterman postfix/qmgr[8204]: 0CBB8259BF: removed
+Feb 11 16:49:25 letterman postfix/qmgr[8204]: A55F82104D: removed
+Feb 11 16:49:25 letterman postfix/qmgr[8204]: AC1E3259E1: removed
+Feb 11 16:49:25 letterman postfix/qmgr[8204]: CA94A259EB: removed
+Feb 11 16:49:25 letterman postfix/qmgr[8204]: D114D221E3: removed
+Feb 11 16:49:25 letterman postfix/qmgr[8204]: D6DAA259BC: removed
+Feb 11 16:49:25 letterman postfix-secondary/qmgr[8204]: AAB4D259B3: removed
+Feb 11 16:49:25 letterman postfix/qmgr[8204]: DDEF824B48: removed
+Feb 11 16:49:25 letterman postfix/qmgr[8204]: E3908259F0: removed
+Feb 11 16:49:25 letterman postfix/qmgr[8204]: EA3AD259F2: removed
+Feb 11 16:49:26 letterman postfix/qmgr[8204]: 09D60259F8: removed
+Feb 11 16:49:26 letterman postfix/qmgr[8204]: 13A19259FA: removed
+Feb 11 16:49:26 letterman postfix/qmgr[8204]: 2164B259FD: removed
+Feb 11 16:49:26 letterman postfix/qmgr[8204]: 289AF21DB9: removed
+Feb 11 16:49:26 letterman postfix/qmgr[8204]: 2D42722065: removed
+Feb 11 16:49:26 letterman postfix/qmgr[8204]: 4D2F125A02: removed
+Feb 11 16:49:26 letterman postfix/qmgr[8204]: 6192B260E8: removed
+Feb 11 16:49:26 letterman postfix/qmgr[8204]: 746E325A0E: removed
+Feb 11 16:49:26 letterman postfix/qmgr[8204]: 8C30525A14: removed
+Feb 11 16:49:26 letterman postfix/qmgr[8204]: 8DCCE25A15: removed
+Feb 11 16:49:26 letterman postfix/qmgr[8204]: C5217255D5: removed
+Feb 11 16:49:26 letterman postfix/qmgr[8204]: DC88924DA1: removed
+Feb 11 16:49:26 letterman postfix/qmgr[8204]: E30BC259EF: removed
+Feb 11 16:49:26 letterman postfix/qmgr[8204]: F2831259F4: removed
+Feb 11 16:49:27 letterman postfix/qmgr[8204]: 9AD7C25A19: removed
+Feb 11 16:49:27 letterman postfix/qmgr[8204]: D0EEE2596C: removed
+Feb 11 16:49:27 letterman postfix/qmgr[8204]: D8EE625A28: removed
+Feb 11 16:49:27 letterman postfix/qmgr[8204]: DFE732172E: removed
+Feb 24 16:18:40 letterman postfix/smtp[59649]: 5270320179: to=<hebj@telia.com>, relay=mail.telia.com[81.236.60.210]:25, delay=2017, delays=0.1/2017/0.03/0.05, dsn=2.0.0, status=sent (250 2.0.0 6FVIjIMwUJwU66FVIjAEB0 mail accepted for delivery)
+Feb 24 16:42:00 letterman postfix/smtpd[24906]: 1CF582025C: client=xxx[2.3.4.5]
+Jul 24 03:28:15 mail postfix/smtp[24052]: Verified TLS connection established to mx2.comcast.net[2001:558:fe21:2a::6]:25: TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits)
+Jul 24 04:38:17 mail postfix/smtp[30582]: Verified TLS connection established to gmail-smtp-in.l.google.com[108.177.14.26]:25: TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits) key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256
+Oct 30 13:19:26 mailgw-out1 postfix/smtpd[27530]: EB4B2C19E2: client=xxx[1.2.3.4], sasl_method=PLAIN, sasl_username=user@domain
+Feb 11 16:49:27 letterman postfix/qmgr[8204]: DFE732172E: removed
+Sep 23 15:53:33 mail postfix/smtpd[3643150]: connect from unknown[0.0.0.0]
+Sep 23 15:53:33 mail postfix/smtpd[3643150]: NOQUEUE: reject: RCPT from unknown[0.0.0.0]: 450 4.7.25 Client host rejected: cannot find your hostname, [0.0.0.0]; from=<spam@example.com> to=<inbox@example.org> proto=ESMTP helo=<mail.port25.com>
+Sep 23 15:53:33 mail postfix/smtpd[3643150]: disconnect from unknown[0.0.0.0] ehlo=1 mail=1 rcpt=0/1 quit=1 commands=3/4
+Sep 23 15:57:39 mail postfix/submission/smtpd[3646210]: connect from unknown[fe80::1:2:3:4]
+Sep 23 15:57:40 mail postfix/submission/smtpd[3646210]: 838FC8A5F: client=unknown[fe80::1:2:3:4], sasl_method=PLAIN, sasl_username=out@example.org
+Sep 23 15:57:40 mail postfix/cleanup[3646045]: 838FC8A5F: message-id=<341d97ec-c42a-6b0d-a49d-00d44a4f9753@example.org>
+Sep 23 15:57:41 mail postfix/qmgr[2450825]: 838FC8A5F: from=<out@example.org>, size=939, nrcpt=1 (queue active)
+Sep 23 15:57:41 mail postfix/submission/smtpd[3646210]: disconnect from unknown[fe80::1:2:3:4] ehlo=2 starttls=1 auth=1 mail=1 rcpt=1 data=1 quit=1 commands=8
+Sep 23 15:57:41 mail postfix/smtp[3646046]: Verified TLS connection established to gmail-smtp-in.l.google.com[173.194.76.27]:25: TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits) key-exchange X25519 server-signature ECDSA (P-256)
+Sep 23 15:57:42 mail postfix/smtp[3646046]: 838FC8A5F: to=<someone@example.com>, relay=gmail-smtp-in.l.google.com[173.194.76.27]:25, delay=1.6, delays=0.78/0/0.3/0.52, dsn=2.0.0, status=sent (250 2.0.0 OK  1632412662 aaaaaaaaaaaaaaa.511 - gsmtp)
+Sep 23 15:57:42 mail postfix/qmgr[2450825]: 838FC8A5F: removed

@@ -14,19 +14,10 @@
 package main
 
 import (
-	"bufio"
-	"bytes"
 	"context"
-	"errors"
-	"fmt"
 	"io"
 	"log"
-	"net"
-	"path/filepath"
-	"regexp"
 	"strconv"
-	"strings"
-	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 )
@@ -40,6 +31,7 @@ var postfixUpDesc = prometheus.NewDesc(
 // Postfix Prometheus metrics exporter across scrapes.
 type PostfixExporter struct {
 	instances           []string
+	skipShowq           bool // set in tests
 	logSrc              LogSource
 	logUnsupportedLines bool
 
@@ -61,6 +53,7 @@ type PostfixExporter struct {
 	smtpdLostConnections            *prometheus.CounterVec
 	smtpdProcesses                  *prometheus.CounterVec
 	smtpdRejects                    *prometheus.CounterVec
+	smtpdSASLConnects               *prometheus.CounterVec
 	smtpdSASLAuthenticationFailures *prometheus.CounterVec
 	smtpdTLSConnects                *prometheus.CounterVec
 	unsupportedLogEntries           *prometheus.CounterVec
@@ -77,134 +70,83 @@ type LogSource interface {
 	Read(context.Context) (string, error)
 }
 
-
-		}
-
-	}
-
-		}
-		}
-		}
-
-// Patterns for parsing log messages.
-var (
-	logLine                             = regexp.MustCompile(` ?(postfix(?:-\w+)?)(?:/(\w+))?\[\d+\]: (.*)`)
-	lmtpPipeSMTPLine                    = regexp.MustCompile(`, relay=(\S+), .*, delays=([0-9\.]+)/([0-9\.]+)/([0-9\.]+)/([0-9\.]+), `)
-	qmgrInsertLine                      = regexp.MustCompile(`:.*, size=(\d+), nrcpt=(\d+) `)
-	smtpStatusLine                      = regexp.MustCompile(`, status=(\w+)`)
-	smtpTLSLine                         = regexp.MustCompile(`^(\S+) TLS connection established to \S+: (\S+) with cipher (\S+) \((\d+)/(\d+) bits\)`)
-	smtpConnectionTimedOut              = regexp.MustCompile(`^connect\s+to\s+(.*)\[(.*)\]:(\d+):\s+(Connection timed out)$`)
-	smtpdFCrDNSErrorsLine               = regexp.MustCompile(`^warning: hostname \S+ does not resolve to address `)
-	smtpdProcessesSASLLine              = regexp.MustCompile(`: client=.*, sasl_method=(\S+)`)
-	smtpdRejectsLine                    = regexp.MustCompile(`^NOQUEUE: reject: RCPT from \S+: ([0-9]+) `)
-	smtpdLostConnectionLine             = regexp.MustCompile(`^lost connection after (\w+) from `)
-	smtpdSASLAuthenticationFailuresLine = regexp.MustCompile(`^warning: \S+: SASL \S+ authentication failed: `)
-	smtpdTLSLine                        = regexp.MustCompile(`^(\S+) TLS connection established from \S+: (\S+) with cipher (\S+) \((\d+)/(\d+) bits\)`)
-)
-
 // CollectFromLogline collects metrict from a Postfix log line.
-func (e *PostfixExporter) CollectFromLogLine(instance, line string) { //nolint:funlen,gocognit
-	// Strip off timestamp, hostname, etc.
-	logMatches := logLine.FindStringSubmatch(line)
-	if logMatches == nil {
-		// Unknown log entry format.
-		e.addToUnsupportedLine(line, instance, "")
+func (e *PostfixExporter) CollectFromLogLine(instance, line string) { //nolint:gocognit
+	r := parseLogLine(instance, line)
+
+	if r.unsupported {
+		if !r.ignore {
+			e.addToUnsupportedLine(line, instance, r.subprocess)
+		}
 
 		return
 	}
 
-	process := logMatches[1]
-	subprocess := logMatches[2]
-	remainder := logMatches[3]
+	switch r.subprocess {
+	case "cleanup":
+		if r.cleanup.process {
+			e.cleanupProcesses.WithLabelValues(instance).Inc()
+		} else if r.cleanup.reject {
+			e.cleanupRejects.WithLabelValues(instance).Inc()
+		}
+	case "lmtp":
+		if v := r.lmtp.delays; v != nil {
+			e.lmtpDelays.WithLabelValues(instance, "before_queue_manager").Observe(v.beforeQueueManager)
+			e.lmtpDelays.WithLabelValues(instance, "queue_manager").Observe(v.queueManager)
+			e.lmtpDelays.WithLabelValues(instance, "connection_setup").Observe(v.connSetup)
+			e.lmtpDelays.WithLabelValues(instance, "transmission").Observe(v.transmission)
+		}
+	case "pipe":
+		if v := r.pipe.delays; v != nil {
+			e.pipeDelays.WithLabelValues(instance, r.pipe.relay, "before_queue_manager").Observe(v.beforeQueueManager)
+			e.pipeDelays.WithLabelValues(instance, r.pipe.relay, "queue_manager").Observe(v.queueManager)
+			e.pipeDelays.WithLabelValues(instance, r.pipe.relay, "connection_setup").Observe(v.connSetup)
+			e.pipeDelays.WithLabelValues(instance, r.pipe.relay, "transmission").Observe(v.transmission)
+		}
+	case "qmgr":
+		if r.qmgr.removed {
+			e.qmgrRemoves.WithLabelValues(instance).Inc()
+		} else {
+			e.qmgrInsertsSize.WithLabelValues(instance).Observe(r.qmgr.size)
+			e.qmgrInsertsNrcpt.WithLabelValues(instance).Observe(r.qmgr.nrcpt)
+		}
+	case "smtp":
+		if v := r.smtp.delays; v != nil {
+			e.smtpDelays.WithLabelValues(instance, "before_queue_manager").Observe(v.beforeQueueManager)
+			e.smtpDelays.WithLabelValues(instance, "queue_manager").Observe(v.queueManager)
+			e.smtpDelays.WithLabelValues(instance, "connection_setup").Observe(v.connSetup)
+			e.smtpDelays.WithLabelValues(instance, "transmission").Observe(v.transmission)
 
-	// TODO: the log prefix is determined by `postconf multi_instance_name`
-	switch process {
-	case instance: // "postfix" or "postfix-instancename"
-		// Group patterns to check by Postfix service.
-		switch subprocess {
-		case "cleanup":
-			if strings.Contains(remainder, ": message-id=<") {
-				e.cleanupProcesses.WithLabelValues(instance).Inc()
-			} else if strings.Contains(remainder, ": reject: ") {
-				e.cleanupRejects.WithLabelValues(instance).Inc()
-			} else {
-				e.addToUnsupportedLine(line, instance, subprocess)
+			if r.smtp.status != "" {
+				e.smtpStatus.WithLabelValues(instance, r.smtp.status)
 			}
-		case "lmtp":
-			if lmtpMatches := lmtpPipeSMTPLine.FindStringSubmatch(remainder); lmtpMatches != nil {
-				addToHistogramVec(e.lmtpDelays, lmtpMatches[2], "LMTP pdelay", instance, "before_queue_manager")
-				addToHistogramVec(e.lmtpDelays, lmtpMatches[3], "LMTP adelay", instance, "queue_manager")
-				addToHistogramVec(e.lmtpDelays, lmtpMatches[4], "LMTP sdelay", instance, "connection_setup")
-				addToHistogramVec(e.lmtpDelays, lmtpMatches[5], "LMTP xdelay", instance, "transmission")
-			} else {
-				e.addToUnsupportedLine(line, instance, subprocess)
-			}
-		case "pipe":
-			if pipeMatches := lmtpPipeSMTPLine.FindStringSubmatch(remainder); pipeMatches != nil {
-				addToHistogramVec(e.pipeDelays, pipeMatches[2], "PIPE pdelay", pipeMatches[1], instance, "before_queue_manager")
-				addToHistogramVec(e.pipeDelays, pipeMatches[3], "PIPE adelay", pipeMatches[1], instance, "queue_manager")
-				addToHistogramVec(e.pipeDelays, pipeMatches[4], "PIPE sdelay", pipeMatches[1], instance, "connection_setup")
-				addToHistogramVec(e.pipeDelays, pipeMatches[5], "PIPE xdelay", pipeMatches[1], instance, "transmission")
-			} else {
-				e.addToUnsupportedLine(line, instance, subprocess)
-			}
-		case "qmgr":
-			if qmgrInsertMatches := qmgrInsertLine.FindStringSubmatch(remainder); qmgrInsertMatches != nil {
-				addToHistogramVec(e.qmgrInsertsSize, qmgrInsertMatches[1], instance, "QMGR size")
-				addToHistogramVec(e.qmgrInsertsNrcpt, qmgrInsertMatches[2], instance, "QMGR nrcpt")
-			} else if strings.HasSuffix(remainder, ": removed") {
-				e.qmgrRemoves.WithLabelValues(instance).Inc()
-			} else {
-				e.addToUnsupportedLine(line, instance, subprocess)
-			}
-		case "smtp":
-			if smtpMatches := lmtpPipeSMTPLine.FindStringSubmatch(remainder); smtpMatches != nil {
-				addToHistogramVec(e.smtpDelays, smtpMatches[2], "before_queue_manager", instance)
-				addToHistogramVec(e.smtpDelays, smtpMatches[3], "queue_manager", instance)
-				addToHistogramVec(e.smtpDelays, smtpMatches[4], "connection_setup", instance)
-				addToHistogramVec(e.smtpDelays, smtpMatches[5], "transmission", instance)
-				if statusMatches := smtpStatusLine.FindStringSubmatch(remainder); statusMatches != nil {
-					e.smtpStatus.WithLabelValues(instance, statusMatches[1]).Inc()
-				}
-			} else if smtpTLSMatches := smtpTLSLine.FindStringSubmatch(remainder); smtpTLSMatches != nil {
-				e.smtpTLSConnects.WithLabelValues(smtpTLSMatches[1:]...).Inc()
-			} else if smtpMatches := smtpConnectionTimedOut.FindStringSubmatch(remainder); smtpMatches != nil {
-				e.smtpConnectionTimedOut.WithLabelValues(instance).Inc()
-			} else {
-				e.addToUnsupportedLine(line, instance, subprocess)
-			}
-		case "smtpd":
-			if strings.HasPrefix(remainder, "connect from ") {
-				e.smtpdConnects.WithLabelValues(instance).Inc()
-			} else if strings.HasPrefix(remainder, "disconnect from ") {
-				e.smtpdDisconnects.WithLabelValues(instance).Inc()
-			} else if smtpdFCrDNSErrorsLine.MatchString(remainder) {
-				e.smtpdFCrDNSErrors.WithLabelValues(instance).Inc()
-			} else if smtpdLostConnectionMatches := smtpdLostConnectionLine.FindStringSubmatch(remainder); smtpdLostConnectionMatches != nil {
-				e.smtpdLostConnections.WithLabelValues(instance, smtpdLostConnectionMatches[1]).Inc()
-			} else if smtpdProcessesSASLMatches := smtpdProcessesSASLLine.FindStringSubmatch(remainder); smtpdProcessesSASLMatches != nil {
-				e.smtpdProcesses.WithLabelValues(instance, smtpdProcessesSASLMatches[1]).Inc()
-			} else if strings.Contains(remainder, ": client=") {
-				e.smtpdProcesses.WithLabelValues(instance, "").Inc()
-			} else if smtpdRejectsMatches := smtpdRejectsLine.FindStringSubmatch(remainder); smtpdRejectsMatches != nil {
-				e.smtpdRejects.WithLabelValues(instance, smtpdRejectsMatches[1]).Inc()
-			} else if smtpdSASLAuthenticationFailuresLine.MatchString(remainder) {
-				e.smtpdSASLAuthenticationFailures.WithLabelValues(instance).Inc()
-			} else if smtpdTLSMatches := smtpdTLSLine.FindStringSubmatch(remainder); smtpdTLSMatches != nil {
-				e.smtpdTLSConnects.WithLabelValues(append([]string{instance}, smtpdTLSMatches[1:]...)...).Inc()
-			} else {
-				e.addToUnsupportedLine(line, instance, subprocess)
-			}
-		default:
-			e.addToUnsupportedLine(line, instance, subprocess)
+		} else if v := r.smtp.tls; v != nil {
+			e.smtpTLSConnects.WithLabelValues(append([]string{instance}, v...)...).Inc()
+		} else if r.smtp.timeout {
+			e.smtpConnectionTimedOut.WithLabelValues(instance).Inc()
 		}
-	default:
-		if strings.HasPrefix(instance, "postfix") {
-			// log entry for different instance
-			return
+	case "smtpd":
+		if r.smtpd.connect {
+			e.smtpdConnects.WithLabelValues(instance).Inc()
+		} else if r.smtpd.disconnect {
+			e.smtpdDisconnects.WithLabelValues(instance).Inc()
+		} else if r.smtpd.dnsError {
+			e.smtpdFCrDNSErrors.WithLabelValues(instance).Inc()
+		} else if v := r.smtpd.lostConnection; v != "" {
+			e.smtpdLostConnections.WithLabelValues(instance, v).Inc()
+		} else if v := r.smtpd.saslMethod; v != "" {
+			e.smtpdSASLConnects.WithLabelValues(instance, v).Inc()
+		} else if r.smtpd.process {
+			e.smtpdProcesses.WithLabelValues(instance).Inc()
+		} else if v := r.smtpd.reject; v != "" {
+			e.smtpdRejects.WithLabelValues(instance, v).Inc()
+		} else if r.smtpd.saslAuthFailed {
+			e.smtpdSASLAuthenticationFailures.WithLabelValues(instance).Inc()
+		} else if v := r.smtpd.tls; v != nil {
+			log.Println("---------------------", v)
+
+			e.smtpdTLSConnects.WithLabelValues(append([]string{instance}, v...)...).Inc()
 		}
-		// unknown log entry format
-		e.addToUnsupportedLine(line, instance, "")
 	}
 }
 
@@ -282,7 +224,7 @@ func NewPostfixExporter(instances []string, logSrc LogSource, logUnsupportedLine
 			Name:      "smtp_delivery_delay_seconds",
 			Help:      "SMTP message processing time in seconds.",
 			Buckets:   timeBuckets,
-		}, []string{"name"}),
+		}, []string{"name", "stage"}),
 		smtpTLSConnects: prometheus.NewCounterVec(prometheus.CounterOpts{
 			Namespace: ns,
 			Name:      "smtp_tls_connections_total",
@@ -317,12 +259,17 @@ func NewPostfixExporter(instances []string, logSrc LogSource, logUnsupportedLine
 			Namespace: ns,
 			Name:      "smtpd_messages_processed_total",
 			Help:      "Total number of messages processed.",
-		}, []string{"name", "sasl_method"}),
+		}, []string{"name"}),
 		smtpdRejects: prometheus.NewCounterVec(prometheus.CounterOpts{
 			Namespace: ns,
 			Name:      "smtpd_messages_rejected_total",
 			Help:      "Total number of NOQUEUE rejects.",
 		}, []string{"name", "code"}),
+		smtpdSASLConnects: prometheus.NewCounterVec(prometheus.CounterOpts{
+			Namespace: ns,
+			Name:      "smtpd_sasl_connections_total",
+			Help:      "Total number of SASL connections.",
+		}, []string{"name", "sasl_method"}),
 		smtpdSASLAuthenticationFailures: prometheus.NewCounterVec(prometheus.CounterOpts{
 			Namespace: ns,
 			Name:      "smtpd_sasl_authentication_failures_total",
@@ -406,13 +353,15 @@ func (e *PostfixExporter) StartMetricCollection(ctx context.Context, instance st
 
 // Collect metrics from Postfix's showq socket and its log file.
 func (e *PostfixExporter) Collect(ch chan<- prometheus.Metric) {
-	for _, instance := range e.instances {
-		err := CollectShowqFromSocket(instance, ch)
-		if err == nil {
-			ch <- prometheus.MustNewConstMetric(postfixUpDesc, prometheus.GaugeValue, 1.0, instance)
-		} else {
-			log.Printf("Failed to scrape showq socket: %s", err)
-			ch <- prometheus.MustNewConstMetric(postfixUpDesc, prometheus.GaugeValue, 0.0, instance)
+	if !e.skipShowq {
+		for _, instance := range e.instances {
+			err := CollectShowqFromSocket(instance, ch)
+			if err == nil {
+				ch <- prometheus.MustNewConstMetric(postfixUpDesc, prometheus.GaugeValue, 1.0, instance)
+			} else {
+				log.Printf("Failed to scrape showq socket: %s", err)
+				ch <- prometheus.MustNewConstMetric(postfixUpDesc, prometheus.GaugeValue, 0.0, instance)
+			}
 		}
 	}
 
