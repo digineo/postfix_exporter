@@ -15,7 +15,7 @@ These options can be used when starting the `postfix_exporter`
 |--------------------------|-----------------------------------------------------------------|---------------------|
 | `--web.listen-address`   | Address to listen on for web interface and telemetry            | `9154`              |
 | `--web.telemetry-path`   | Path under which to expose metrics                              | `/metrics`          |
-| `--postfix.instances`    | Postfix instance names to monitor (option can be repeated)      | `postfix`           |
+| `--postfix.instance`     | Name of Postfix instances to monitor (option can be repeated)   | `postfix`           |
 | `--postfix.logfile_path` | Path where Postfix writes log entries                           | `/var/log/mail.log` |
 | `--log.unsupported`      | Log all unsupported lines                                       | `false`             |
 | `--docker.enable`        | Read from the Docker logs instead of a file                     | `false`             |
@@ -32,7 +32,7 @@ at the same time, however currently some restrictions need to be met:
 
 Firstly, the instance names must directy match the [`$queue_directory`][queue_directory]
 and [`$syslog_name`][syslog_name], i.e. instance `postfix-foo` queues
-to `/var/spool/postfix-foo` and creates logs with `postfix-queue/` prefix.
+to `/var/spool/postfix-foo` and creates logs with `postfix-foo/` prefix.
 
 This is accomblished by setting at least the following in the instances `main.cf`:
 
@@ -42,8 +42,17 @@ queue_directory     = /var/spool/postfix-strict
 ```
 
 Secondly, if you use systemd, you need to start the exporter with
-`--systemd.slice=postfix.slice`, as `--systemd.unit` only accepts a
-single unit name.
+`--systemd.slice`, as `--systemd.unit` only accepts a single unit name.
+
+For Ubuntu 20.04, a multi-instance setup may look like this:
+
+```sh
+./postfix_exporter \
+        --systemd.enable \
+        --systemd.instance postfix \
+        --systemd.instance postfix-secondary \
+        --systemd.slice system-postfix.slice
+```
 
 [multi-instance]:  http://www.postfix.org/MULTI_INSTANCE_README.html
 [queue_directory]: http://www.postfix.org/postconf.5.html#queue_directory
