@@ -55,7 +55,6 @@ type PostfixExporter struct {
 	smtpDelays                      *prometheus.HistogramVec
 	smtpTLSConnects                 *prometheus.CounterVec
 	smtpConnectionTimedOut          *prometheus.CounterVec
-	smtpDeferreds                   *prometheus.CounterVec
 	smtpdConnects                   *prometheus.CounterVec
 	smtpdDisconnects                *prometheus.CounterVec
 	smtpdFCrDNSErrors               *prometheus.CounterVec
@@ -479,11 +478,6 @@ func NewPostfixExporter(instances []string, logSrc LogSource, logUnsupportedLine
 			Name:      "smtp_tls_connections_total",
 			Help:      "Total number of outgoing TLS connections.",
 		}, []string{"name", "trust", "protocol", "cipher", "secret_bits", "algorithm_bits"}),
-		smtpDeferreds: prometheus.NewCounterVec(prometheus.CounterOpts{
-			Namespace: "postfix",
-			Name:      "smtp_deferred_messages_total",
-			Help:      "Total number of messages that have been deferred on SMTP.",
-		}, []string{"name"}),
 		smtpConnectionTimedOut: prometheus.NewCounterVec(prometheus.CounterOpts{
 			Namespace: "postfix",
 			Name:      "smtp_connection_timed_out_total",
@@ -559,7 +553,6 @@ func (e *PostfixExporter) Describe(ch chan<- *prometheus.Desc) {
 	e.qmgrRemoves.Describe(ch)
 	e.smtpDelays.Describe(ch)
 	e.smtpTLSConnects.Describe(ch)
-	e.smtpDeferreds.Describe(ch)
 	e.smtpdConnects.Describe(ch)
 	e.smtpdDisconnects.Describe(ch)
 	e.smtpdFCrDNSErrors.Describe(ch)
@@ -626,7 +619,6 @@ func (e *PostfixExporter) Collect(ch chan<- prometheus.Metric) {
 	e.qmgrRemoves.Collect(ch)
 	e.smtpDelays.Collect(ch)
 	e.smtpTLSConnects.Collect(ch)
-	e.smtpDeferreds.Collect(ch)
 	e.smtpdConnects.Collect(ch)
 	e.smtpdDisconnects.Collect(ch)
 	e.smtpdFCrDNSErrors.Collect(ch)

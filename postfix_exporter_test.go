@@ -21,7 +21,6 @@ type collectFields struct {
 	qmgrRemoves                     *prometheus.CounterVec
 	smtpDelays                      *prometheus.HistogramVec
 	smtpTLSConnects                 *prometheus.CounterVec
-	smtpDeferreds                   *prometheus.CounterVec
 	smtpdConnects                   *prometheus.CounterVec
 	smtpdDisconnects                *prometheus.CounterVec
 	smtpdFCrDNSErrors               *prometheus.CounterVec
@@ -198,7 +197,6 @@ func (tt *collectFromLogTest) prepare() *PostfixExporter {
 		qmgrRemoves:                     tt.fields.qmgrRemoves,
 		smtpDelays:                      tt.fields.smtpDelays,
 		smtpTLSConnects:                 tt.fields.smtpTLSConnects,
-		smtpDeferreds:                   tt.fields.smtpDeferreds,
 		smtpdConnects:                   tt.fields.smtpdConnects,
 		smtpdDisconnects:                tt.fields.smtpdDisconnects,
 		smtpdFCrDNSErrors:               tt.fields.smtpdFCrDNSErrors,
