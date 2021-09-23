@@ -5,8 +5,8 @@ import (
 	"io"
 	"log"
 
-	"github.com/alecthomas/kingpin"
 	"github.com/nxadm/tail"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 // A FileLogSource can read lines from a file.

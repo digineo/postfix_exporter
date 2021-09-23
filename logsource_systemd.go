@@ -9,8 +9,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/alecthomas/kingpin"
 	"github.com/coreos/go-systemd/v22/sdjournal"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 // timeNow is a test fake injection point.

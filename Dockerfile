@@ -1,4 +1,4 @@
-FROM golang:1.13 AS builder
+FROM golang:1 AS builder
 WORKDIR /src
 
 # avoid downloading the dependencies on succesive builds

@@ -9,9 +9,9 @@ import (
 	"log"
 	"strings"
 
-	"github.com/alecthomas/kingpin"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 // A DockerLogSource reads log records from the given Docker
