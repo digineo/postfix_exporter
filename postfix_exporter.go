@@ -269,6 +269,8 @@ func CollectBinaryShowqFromReader(file io.Reader, instance string, ch chan<- pro
 
 // CollectShowqFromSocket collects Postfix queue statistics from a socket.
 func CollectShowqFromSocket(instance string, ch chan<- prometheus.Metric) error {
+	// TODO: the proper way would be to ask postmulti:
+	//	postmulti -i $instance -x postconf -hx queue_directory
 	fd, err := net.Dial("unix", filepath.Join("/var/spool", instance, "public/showq"))
 	if err != nil {
 		return err
@@ -309,6 +311,7 @@ func (e *PostfixExporter) CollectFromLogLine(instance, line string) { //nolint:f
 	subprocess := logMatches[2]
 	remainder := logMatches[3]
 
+	// TODO: the log prefix is determined by `postconf multi_instance_name`
 	switch process {
 	case instance: // "postfix" or "postfix-instancename"
 		// Group patterns to check by Postfix service.

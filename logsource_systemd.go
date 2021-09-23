@@ -111,7 +111,7 @@ type systemdLogSourceFactory struct {
 
 func (f *systemdLogSourceFactory) Init(app *kingpin.Application) {
 	app.Flag("systemd.enable", "Read from the systemd journal instead of log").Default("false").BoolVar(&f.enable)
-	app.Flag("systemd.unit", "Name of the Postfix systemd unit.").Default("postfix.service").StringVar(&f.unit)
+	app.Flag("systemd.unit", "Name of the Postfix systemd unit.").Default("postfix@-.service").StringVar(&f.unit)
 	app.Flag("systemd.slice", "Name of the Postfix systemd slice. Overrides the systemd unit.").Default("").StringVar(&f.slice)
 	app.Flag("systemd.journal_path", "Path to the systemd journal").Default("").StringVar(&f.path)
 }
