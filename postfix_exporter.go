@@ -67,7 +67,6 @@ type PostfixExporter struct {
 	smtpdTLSConnects                *prometheus.CounterVec
 	unsupportedLogEntries           *prometheus.CounterVec
 	smtpStatusDeferred              prometheus.Counter
-	opendkimSignatureAdded          *prometheus.CounterVec
 }
 
 // A LogSource is an interface to read log lines.
@@ -286,7 +285,7 @@ func CollectShowqFromSocket(path string, ch chan<- prometheus.Metric) error {
 
 // Patterns for parsing log messages.
 var (
-	logLine                             = regexp.MustCompile(` ?(postfix|opendkim)(/(\w+))?\[\d+\]: (.*)`)
+	logLine                             = regexp.MustCompile(` ?(postfix)(/(\w+))?\[\d+\]: (.*)`)
 	lmtpPipeSMTPLine                    = regexp.MustCompile(`, relay=(\S+), .*, delays=([0-9\.]+)/([0-9\.]+)/([0-9\.]+)/([0-9\.]+), `)
 	qmgrInsertLine                      = regexp.MustCompile(`:.*, size=(\d+), nrcpt=(\d+) `)
 	smtpStatusDeferredLine              = regexp.MustCompile(`, status=deferred`)
@@ -298,7 +297,6 @@ var (
 	smtpdLostConnectionLine             = regexp.MustCompile(`^lost connection after (\w+) from `)
 	smtpdSASLAuthenticationFailuresLine = regexp.MustCompile(`^warning: \S+: SASL \S+ authentication failed: `)
 	smtpdTLSLine                        = regexp.MustCompile(`^(\S+) TLS connection established from \S+: (\S+) with cipher (\S+) \((\d+)/(\d+) bits\)`)
-	opendkimSignatureAdded              = regexp.MustCompile(`^[\w\d]+: DKIM-Signature field added \(s=(\w+), d=(.*)\)$`)
 )
 
 // CollectFromLogline collects metrict from a Postfix log line.
@@ -393,12 +391,6 @@ func (e *PostfixExporter) CollectFromLogLine(line string) {
 			}
 		default:
 			e.addToUnsupportedLine(line, subprocess)
-		}
-	case "opendkim":
-		if opendkimMatches := opendkimSignatureAdded.FindStringSubmatch(remainder); opendkimMatches != nil {
-			e.opendkimSignatureAdded.WithLabelValues(opendkimMatches[1], opendkimMatches[2]).Inc()
-		} else {
-			e.addToUnsupportedLine(line, process)
 		}
 	default:
 		// Unknown log entry format.
@@ -569,14 +561,6 @@ func NewPostfixExporter(showqPath string, logSrc LogSource, logUnsupportedLines 
 			Name:      "smtp_status_deferred",
 			Help:      "Total number of messages deferred.",
 		}),
-		opendkimSignatureAdded: prometheus.NewCounterVec(
-			prometheus.CounterOpts{
-				Namespace: "opendkim",
-				Name:      "signatures_added_total",
-				Help:      "Total number of messages signed.",
-			},
-			[]string{"subject", "domain"},
-		),
 	}, nil
 }
 
@@ -609,7 +593,6 @@ func (e *PostfixExporter) Describe(ch chan<- *prometheus.Desc) {
 	ch <- e.smtpStatusDeferred.Desc()
 	e.unsupportedLogEntries.Describe(ch)
 	e.smtpConnectionTimedOut.Describe(ch)
-	e.opendkimSignatureAdded.Describe(ch)
 }
 
 func (e *PostfixExporter) StartMetricCollection(ctx context.Context) {
@@ -684,5 +667,4 @@ func (e *PostfixExporter) Collect(ch chan<- prometheus.Metric) {
 	ch <- e.smtpStatusDeferred
 	e.unsupportedLogEntries.Collect(ch)
 	ch <- e.smtpConnectionTimedOut
-	e.opendkimSignatureAdded.Collect(ch)
 }
