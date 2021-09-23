@@ -1,3 +1,10 @@
+> Note: This is a fork of [kumina/postfix_exporter](https://github.com/kumina/postfix_exporter)
+> with experimental changes to support [multiple Postfix instances][multi-instance].
+>
+> This code base introduces a large number breaking changes compared to
+> kumina/postfix_exporter, not only code itself, but also in the exported
+> metrics.
+
 # Prometheus Postfix exporter
 
 Prometheus metrics exporter for [the Postfix mail server](http://www.postfix.org/).

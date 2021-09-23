@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/kumina/postfix_exporter/mock"
+	"github.com/digineo/postfix_exporter/mock"
 	"github.com/stretchr/testify/assert"
 )
 
