@@ -19,13 +19,14 @@ func main() {
 		listenAddress       = app.Flag("web.listen-address", "Address to listen on for web interface and telemetry.").Default(":9154").String()
 		metricsPath         = app.Flag("web.telemetry-path", "Path under which to expose metrics.").Default("/metrics").String()
 		instances           = app.Flag("postfix.instance", "Name of postfix instances.").Default("postfix").Strings()
+		logSourceName       = app.Flag("log.source", "Postfix log source").Default("file").Enum(logSourceFactories.Names()...)
 		logUnsupportedLines = app.Flag("log.unsupported", "Log all unsupported lines.").Bool()
 	)
 
-	InitLogSourceFactories(app)
+	logSourceFactories.Init(app)
 	kingpin.MustParse(app.Parse(os.Args[1:]))
 
-	logSrc, err := NewLogSourceFromFactories(ctx)
+	logSrc, err := logSourceFactories.New(*logSourceName, ctx)
 	if err != nil {
 		log.Fatalf("Error opening log source: %s", err)
 	}

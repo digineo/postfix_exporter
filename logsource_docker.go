@@ -71,20 +71,16 @@ func (s *DockerLogSource) Read(ctx context.Context) (string, error) {
 // A dockerLogSourceFactory is a factory that can create
 // DockerLogSources from command line flags.
 type dockerLogSourceFactory struct {
-	enable      bool
 	containerID string
 }
 
+func (*dockerLogSourceFactory) Name() string { return "docker" }
+
 func (f *dockerLogSourceFactory) Init(app *kingpin.Application) {
-	app.Flag("docker.enable", "Read from Docker logs. Environment variable DOCKER_HOST can be used to change the address. See https://pkg.go.dev/github.com/docker/docker/client?tab=doc#NewEnvClient for more information.").Default("false").BoolVar(&f.enable)
-	app.Flag("docker.container.id", "ID/name of the Postfix Docker container.").Default("postfix").StringVar(&f.containerID)
+	app.Flag("docker.container.id", "ID/name of the Postfix Docker container. Environment variable DOCKER_HOST can be used to change the address. See https://pkg.go.dev/github.com/docker/docker/client?tab=doc#NewEnvClient for more information.").Default("postfix").StringVar(&f.containerID)
 }
 
 func (f *dockerLogSourceFactory) New(ctx context.Context) (LogSourceCloser, error) {
-	if !f.enable {
-		return nil, nil
-	}
-
 	log.Println("Reading log events from Docker")
 	c, err := client.NewEnvClient()
 	if err != nil {
@@ -95,5 +91,5 @@ func (f *dockerLogSourceFactory) New(ctx context.Context) (LogSourceCloser, erro
 }
 
 func init() {
-	RegisterLogSourceFactory(&dockerLogSourceFactory{})
+	logSourceFactories.Register(&dockerLogSourceFactory{})
 }

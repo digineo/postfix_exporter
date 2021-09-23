@@ -16,14 +16,21 @@ These options can be used when starting the `postfix_exporter`
 | `--web.listen-address`   | Address to listen on for web interface and telemetry            | `9154`              |
 | `--web.telemetry-path`   | Path under which to expose metrics                              | `/metrics`          |
 | `--postfix.instance`     | Name of Postfix instances to monitor (option can be repeated)   | `postfix`           |
-| `--postfix.logfile_path` | Path where Postfix writes log entries                           | `/var/log/mail.log` |
+| `--log.source`           | Define log source (supports `file`, `docker`, `systemd`)        | `file`              |
 | `--log.unsupported`      | Log all unsupported lines                                       | `false`             |
-| `--docker.enable`        | Read from the Docker logs instead of a file                     | `false`             |
+| `--logfile.path`         | Path where Postfix writes log entries                           | `/var/log/mail.log` |
 | `--docker.container.id`  | The container to read Docker logs from                          | `postfix`           |
-| `--systemd.enable`       | Read from the systemd journal instead of file                   | `false`             |
 | `--systemd.unit`         | Name of the Postfix systemd unit                                | `postfix@-.service` |
 | `--systemd.slice`        | Name of the Postfix systemd slice (overrides `--systemd-unit`)  | *(empty)*           |
 | `--systemd.journal_path` | Path to the systemd journal                                     | *(empty)*           |
+
+Notes:
+
+- depending the value of `--log.source`, only a subset of options is evalutated:
+  - for `file`: `--logfile.path`
+  - for `docker`: `--docker.container.id`
+  - for `systemd`: `--systemd.journal_path`, and either `--systemd.unit` or `--systemd.slice`
+
 
 ### Multiple Postfix instances
 
@@ -48,7 +55,7 @@ For Ubuntu 20.04, a multi-instance setup may look like this:
 
 ```sh
 ./postfix_exporter \
-        --systemd.enable \
+        --log.source systemd \
         --systemd.instance postfix \
         --systemd.instance postfix-secondary \
         --systemd.slice system-postfix.slice
@@ -61,25 +68,25 @@ For Ubuntu 20.04, a multi-instance setup may look like this:
 ## Events from Docker
 
 Postfix servers running in a [Docker](https://www.docker.com/)
-container can be monitored using the `--docker.enable` flag. The
+container can be monitored using the `--log.source=docker` flag. The
 default container ID is `postfix`, but can be customized with the
 `--docker.container.id` flag.
 
 The default is to connect to the local Docker, but this can be
-customized using [the `DOCKER_HOST` and
-similar](https://pkg.go.dev/github.com/docker/docker/client?tab=doc#NewEnvClient)
+customized using [the `DOCKER_HOST` and similar][docker-env]
 environment variables.
+
+[docker-env]: https://pkg.go.dev/github.com/docker/docker/client?tab=doc#NewEnvClient
 
 ## Events from log file
 
-The log file is tailed when processed. Rotating the log files while the exporter
-is running is OK. The path to the log file is specified with the
-`--postfix.logfile_path` flag.
+The log file is tailed when processed. Rotating the log files while the
+exporter is running is OK. The path to the log file is specified with the
+`--postfix.logfile_path` flag, and must be enabled with `--log.source=file`.
 
 ## Events from systemd
 
-Retrieval from the systemd journal is enabled with the `--systemd.enable` flag.
-This overrides the log file setting.
+Retrieval from the systemd journal is enabled with `--log.source=systemd`.
 It is possible to specify the unit (with `--systemd.unit`) or slice (with `--systemd.slice`).
 Additionally, it is possible to read the journal from a directory with the `--systemd.journal_path` flag.
 

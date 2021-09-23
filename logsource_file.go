@@ -68,8 +68,10 @@ type fileLogSourceFactory struct {
 	path string
 }
 
+func (*fileLogSourceFactory) Name() string { return "file" }
+
 func (f *fileLogSourceFactory) Init(app *kingpin.Application) {
-	app.Flag("postfix.logfile_path", "Path where Postfix writes log entries.").Default("/var/log/mail.log").StringVar(&f.path)
+	app.Flag("logfile.path", "Path where Postfix writes log entries.").Default("/var/log/mail.log").StringVar(&f.path)
 }
 
 func (f *fileLogSourceFactory) New(ctx context.Context) (LogSourceCloser, error) {
@@ -79,4 +81,8 @@ func (f *fileLogSourceFactory) New(ctx context.Context) (LogSourceCloser, error)
 	log.Printf("Reading log events from %s", f.path)
 
 	return NewFileLogSource(f.path)
+}
+
+func init() {
+	logSourceFactories.Register(&fileLogSourceFactory{})
 }

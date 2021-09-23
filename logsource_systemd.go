@@ -105,22 +105,18 @@ func (s *SystemdLogSource) Read(ctx context.Context) (string, error) {
 // A systemdLogSourceFactory is a factory that can create
 // SystemdLogSources from command line flags.
 type systemdLogSourceFactory struct {
-	enable            bool
 	unit, slice, path string
 }
 
+func (*systemdLogSourceFactory) Name() string { return "systemd" }
+
 func (f *systemdLogSourceFactory) Init(app *kingpin.Application) {
-	app.Flag("systemd.enable", "Read from the systemd journal instead of log").Default("false").BoolVar(&f.enable)
 	app.Flag("systemd.unit", "Name of the Postfix systemd unit.").Default("postfix@-.service").StringVar(&f.unit)
 	app.Flag("systemd.slice", "Name of the Postfix systemd slice. Overrides the systemd unit.").Default("").StringVar(&f.slice)
 	app.Flag("systemd.journal_path", "Path to the systemd journal").Default("").StringVar(&f.path)
 }
 
 func (f *systemdLogSourceFactory) New(ctx context.Context) (LogSourceCloser, error) {
-	if !f.enable {
-		return nil, nil
-	}
-
 	log.Println("Reading log events from systemd")
 	j, path, err := newSystemdJournal(f.path)
 	if err != nil {
@@ -146,5 +142,5 @@ func newSystemdJournal(path string) (*sdjournal.Journal, string, error) {
 }
 
 func init() {
-	RegisterLogSourceFactory(&systemdLogSourceFactory{})
+	logSourceFactories.Register(&systemdLogSourceFactory{})
 }
